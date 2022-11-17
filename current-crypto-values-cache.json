@@ -1,0 +1,52 @@
+{
+  "BTC": {
+    "name": "Bitcoin",
+    "currentValue": 16703.56,
+    "rate": -0.01
+  },
+  "ETH": {
+    "name": "Ethereum",
+    "currentValue": 1211.57,
+    "rate": -0.02
+  },
+  "QTUM": {
+    "name": "Qtum",
+    "currentValue": 2.041,
+    "rate": -0.05
+  },
+  "SOL": {
+    "name": "Solana",
+    "currentValue": 13.58,
+    "rate": 0.15
+  },
+  "MATIC": {
+    "name": "Polygon",
+    "currentValue": 0.8839,
+    "rate": -0.24
+  },
+  "DOGE": {
+    "name": "DogeCoin",
+    "currentValue": 0.08469,
+    "rate": -0.17
+  },
+  "USDT": {
+    "name": "Tether",
+    "currentValue": 0.99938151,
+    "rate": 0
+  },
+  "XRP": {
+    "name": "Ripple",
+    "currentValue": 0.3766,
+    "rate": 0.08
+  },
+  "ADA": {
+    "name": "Cardano",
+    "currentValue": 0.3255,
+    "rate": -0.12
+  },
+  "SHIB": {
+    "name": "SHIBA-INU",
+    "currentValue": 0.00000911,
+    "rate": 0
+  }
+}
