@@ -2,8 +2,8 @@ const express = require('express');
 const fetch = require('node-fetch')
 const app = express(), bodyParser = require("body-parser");
 const {getCurrentCryptoValues} = require("./supportedCryptos.js");
-const {apiKeyAlphaVantage} = require("./config.js");
-const {SaveCurrentCryptoValues, LoadCurrentCryptoValues} = require('./fileLogger.js');
+const {apiKeyAlphaVantage,accessAddress} = require("./config.js");
+const {SaveCurrentCryptoValues, LoadCurrentCryptoValues} = require('./cryptoLogger.js');
 const port = 3080;
 
 app.use('/resources', express.static(__dirname + '/public'));
@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 
 app.get('/supportedcryptos', (req, res) =>
 {
-    res.set('Access-Control-Allow-Origin', 'http://localhost:4200')
+    res.set('Access-Control-Allow-Origin', accessAddress)
     res.json(supportedCryptos);
 });
 
@@ -50,7 +50,6 @@ function setCurrentCryptoValues()
 
         console.log("----------- Derzeitige Werte - Ende -----------")
         console.log()
-        //SaveCurrentCryptoValues(); //TODO Ist das der richtige Ort zum speichern?
     });
 }
 
@@ -91,5 +90,3 @@ function transformTimeData(timeData)
     }
     return newData;
 }
-
-//TODO Later build feature to switch between EUR & USD

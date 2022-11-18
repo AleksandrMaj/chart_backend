@@ -2,7 +2,7 @@ const request = require("request");
 const {apiKeyAlphaVantage} = require("./config.js");
 const {response} = require("express");
 const fetch = require('node-fetch')
-const {SaveCurrentCryptoValues} = require("./fileLogger");
+const {SaveCurrentCryptoValues} = require("./cryptoLogger");
 
 //Template
 global.supportedCryptos = {
