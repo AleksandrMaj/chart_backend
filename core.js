@@ -1,9 +1,9 @@
 const express = require('express');
-const fetch = require('node-fetch')
 const app = express(), bodyParser = require("body-parser");
-const {getCurrentCryptoValues} = require("./supportedCryptos.js");
-const {apiKeyAlphaVantage,accessAddress} = require("./config.js");
-const {SaveCurrentCryptoValues, LoadCurrentCryptoValues} = require('./cryptoLogger.js');
+const {getCurrentCryptoValues, CollectLongTermCryptoData} = require("./supportedCryptos.js");
+const {accessAddress} = require("./config.js");
+const {LoadCurrentCryptoValues} = require('./cryptoLogger.js');
+const {GetLongTermCryptoData} = require("./cryptoLogger");
 const port = 3080;
 
 app.use('/resources', express.static(__dirname + '/public'));
@@ -15,16 +15,13 @@ app.get('/supportedcryptos', (req, res) =>
     res.json(supportedCryptos);
 });
 
-//TODO Later this need to be cached and the values need to be read from a database
-app.get('/BTC/DAILY/USD', async (req, res) =>
+app.get('/USD/:cryptoType/:time', (req, res) =>
 {
+    let params = req.params;
+    console.log(params['cryptoType'], params['time']);
+    let cryptoData = GetLongTermCryptoData(params['cryptoType'], params['time']);
 
-    const url = `https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symbol=BTC&market=USD&apikey=${apiKeyAlphaVantage}`;
-    let data = await fetch(url);
-    data = await data.json();
-    data = transformData(data);
-
-    res.send(data);
+    res.send(cryptoData)
 });
 
 app.listen(port, () =>
@@ -34,8 +31,23 @@ app.listen(port, () =>
     LoadCurrentCryptoValues();
 
     setCurrentCryptoValues();
-    setInterval(setCurrentCryptoValues, 240000)
+    setInterval(StartCollectionLongTermData, 65000)
+
+    setInterval(setCurrentCryptoValues, 240000);
 })
+
+async function StartCollectionLongTermData()
+{
+    console.log('Start collection long term data')
+    for (const [cryptoType, value] of Object.entries(supportedCryptos))
+    {
+        for (const time of timeIntervals)
+        {
+            console.log('[DEBUG] Getting ' + cryptoType)
+            await CollectLongTermCryptoData(cryptoType, time);
+        }
+    }
+}
 
 function setCurrentCryptoValues()
 {

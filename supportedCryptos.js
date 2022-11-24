@@ -1,8 +1,8 @@
-const request = require("request");
 const {apiKeyAlphaVantage} = require("./config.js");
-const {response} = require("express");
 const fetch = require('node-fetch')
-const {SaveCurrentCryptoValues} = require("./cryptoLogger");
+const {SaveCurrentCryptoValues, SaveLongTermCryptoData} = require("./cryptoLogger");
+
+global.timeIntervals = ['Daily', 'Weekly', 'Monthly'];
 
 //Template
 global.supportedCryptos = {
@@ -36,11 +36,11 @@ global.supportedCryptos = {
         currentValue: -1,
         rate: 0
     },
-    USDT: {
+    /*USDT: { //TODO Not working anymore?
         name: "Tether",
         currentValue: -1,
         rate: 0
-    },
+    },*/
     XRP: {
         name: "Ripple",
         currentValue: -1,
@@ -66,7 +66,6 @@ async function getCurrentCryptoValues()
         console.log("--- " + key + " ---")
         console.log("Wert: " + value + "$");
         console.log("-------------")
-        console.log()
 
         supportedCryptos[key]['rate'] = (value / supportedCryptos[key]['currentValue'] - 1) * 100;
         supportedCryptos[key]['rate'] = Number(supportedCryptos[key]['rate'].toFixed(2));
@@ -77,14 +76,6 @@ async function getCurrentCryptoValues()
     }
 }
 
-function sleep(ms)
-{
-    return new Promise((resolve) =>
-    {
-        setTimeout(resolve, ms);
-    });
-}
-
 async function getCurrentCrytoValue(cryptoCode)
 {
     const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${cryptoCode}&to_currency=USD&apikey=${apiKeyAlphaVantage}`;
@@ -93,4 +84,41 @@ async function getCurrentCrytoValue(cryptoCode)
     return await response.json();
 }
 
-module.exports = {getCurrentCryptoValues};
+async function CollectLongTermCryptoData(cryptoType, time)
+{
+    if (!timeIntervals.includes(time))
+    {
+        console.error('Long term data could not be collected! Wrong time expression!')
+        return;
+    }
+
+    const url = `https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_${time}&symbol=${cryptoType}&market=USD&apikey=${apiKeyAlphaVantage}`;
+    let data = await fetch(url);
+    data = await data.json();
+    data = TransformLongTermData(data, cryptoType, time)
+
+    await SaveLongTermCryptoData(data, cryptoType, time)
+    await sleep(65000);
+}
+
+function TransformLongTermData(data, cryptoType, time)
+{
+    let newData = {};
+    console.log(data,cryptoType,time)
+
+    for (const [key, jsonData] of Object.entries(data[`Time Series (Digital Currency ${time})`]))
+    {
+        newData[key] = Number(jsonData['4a. close (USD)']);
+    }
+    return newData
+}
+
+function sleep(ms)
+{
+    return new Promise((resolve) =>
+    {
+        setTimeout(resolve, ms);
+    });
+}
+
+module.exports = {getCurrentCryptoValues, CollectLongTermCryptoData};
