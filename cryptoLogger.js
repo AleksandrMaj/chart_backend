@@ -22,7 +22,7 @@ function SaveLongTermCryptoData(data, cryptoType, time)
 {
     data = JSON.stringify(data, null, 2);
     fs.writeFileSync(`crypto-cache/long-term-data/${cryptoType}-${time}.json`, data);
-    console.log('[' + cryptoType + '] ' + 'Long-term data was saved!')
+    console.log('[' + cryptoType + ' ' + time +  '] ' + 'Long-term data was saved!')
 }
 
 function GetLongTermCryptoData(cryptoType, time)

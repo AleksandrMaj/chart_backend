@@ -62,7 +62,25 @@ async function getCurrentCryptoValues()
 {
     for (const [key, _] of Object.entries(supportedCryptos))
     {
-        const value = await getCurrentCrytoValue(key).then(data => Number(data['Realtime Currency Exchange Rate']['8. Bid Price']));
+        const value = await getCurrentCrytoValue(key).then(data => {
+            if(typeof data['Realtime Currency Exchange Rate'] === 'undefined' ||
+                typeof data['Realtime Currency Exchange Rate']['8. Bid Price'] === 'undefined' ||
+                data['Realtime Currency Exchange Rate']['8. Bid Price'] === '-')
+                    return -1;
+
+            console.log("[DEBUG]");
+            console.log(data['Realtime Currency Exchange Rate']);
+            console.log(data['Realtime Currency Exchange Rate']['8. Bid Price']);
+
+            return Number(data['Realtime Currency Exchange Rate']['8. Bid Price']);
+        });
+
+        if(value === -1) {
+            console.log(`[FEHLER] Crypto-Wert von ${value} konnte nicht gelesen werden`);
+            await sleep(25000);
+            continue;
+        }
+
         console.log("--- " + key + " ---")
         console.log("Wert: " + value + "$");
         console.log("-------------")
@@ -72,7 +90,7 @@ async function getCurrentCryptoValues()
 
         supportedCryptos[key]['currentValue'] = value;
         SaveCurrentCryptoValues();
-        await sleep(15000);
+        await sleep(25000);
     }
 }
 
@@ -97,20 +115,29 @@ async function CollectLongTermCryptoData(cryptoType, time)
     data = await data.json();
     data = TransformLongTermData(data, cryptoType, time)
 
+    if(data === "ERROR") {
+        await sleep(65000);
+        return;
+    }
+
     await SaveLongTermCryptoData(data, cryptoType, time)
     await sleep(65000);
 }
 
 function TransformLongTermData(data, cryptoType, time)
 {
-    let newData = {};
-    console.log(data,cryptoType,time)
+    try {
+        let newData = {};
 
-    for (const [key, jsonData] of Object.entries(data[`Time Series (Digital Currency ${time})`]))
-    {
-        newData[key] = Number(jsonData['4a. close (USD)']);
+        for (const [key, jsonData] of Object.entries(data[`Time Series (Digital Currency ${time})`]))
+        {
+            newData[key] = Number(jsonData['4a. close (USD)']);
+        }
+        return newData;
     }
-    return newData
+    catch (err) {
+        return 'ERROR';
+    }
 }
 
 function sleep(ms)

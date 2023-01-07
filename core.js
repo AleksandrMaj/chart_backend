@@ -6,13 +6,21 @@ const {LoadCurrentCryptoValues} = require('./cryptoLogger.js');
 const {GetLongTermCryptoData} = require("./cryptoLogger");
 const port = 3080;
 
+// App-Use
+app.use(function(req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    next();
+});
 app.use('/resources', express.static(__dirname + '/public'));
 app.use(bodyParser.json());
 
-app.get('/supportedcryptos', (req, res) =>
+// App-Get
+app.get('/supportedcryptos', (req, res) => res.json(supportedCryptos));
+
+app.get('/cryptoMetaData/:cryptoType', (req, res) =>
 {
-    res.set('Access-Control-Allow-Origin', accessAddress)
-    res.json(supportedCryptos);
+    let params = req.params;
+    res.json(supportedCryptos[params['cryptoType']]);
 });
 
 app.get('/USD/:cryptoType/:time', (req, res) =>
@@ -21,9 +29,11 @@ app.get('/USD/:cryptoType/:time', (req, res) =>
     console.log(params['cryptoType'], params['time']);
     let cryptoData = GetLongTermCryptoData(params['cryptoType'], params['time']);
 
-    res.send(cryptoData)
+    res.json(cryptoData)
+
 });
 
+//App-Listen
 app.listen(port, () =>
 {
     console.log(`Server listening on the port::${port}`)
@@ -31,7 +41,7 @@ app.listen(port, () =>
     LoadCurrentCryptoValues();
 
     setCurrentCryptoValues();
-    setInterval(StartCollectionLongTermData, 65000)
+    StartCollectionLongTermData();
 
     setInterval(setCurrentCryptoValues, 240000);
 })
@@ -43,7 +53,7 @@ async function StartCollectionLongTermData()
     {
         for (const time of timeIntervals)
         {
-            console.log('[DEBUG] Getting ' + cryptoType)
+            //console.log('[DEBUG] Getting ' + cryptoType)
             await CollectLongTermCryptoData(cryptoType, time);
         }
     }
